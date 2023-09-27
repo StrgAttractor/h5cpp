@@ -11,6 +11,7 @@
 	#include "generated.h"
 #include <h5cpp/io>
 #include "utils.hpp"
+#include <thread>
 
 #define CHUNK_SIZE 5
 #define NROWS 4*CHUNK_SIZE
@@ -48,7 +49,8 @@ int main(){
 			h5::stride{6}, h5::block{4}, 
 			h5::current_dims{100}, h5::offset{2});
 	}
-	
+
+	auto read_func = [&fd]()
 	{ // read entire dataset back
 		using T = std::vector<sn::example::Record>;
 		auto data = h5::read<T>(fd,"/orm/partial/vector one_shot");
@@ -56,5 +58,20 @@ int main(){
 		for( auto r:data )
 			std::cerr << r.idx <<" ";
 		std::cerr << std::endl;
-	}
+	};
+
+	std::thread f1(read_func);
+	std::thread f2(read_func);
+	std::thread f3(read_func);
+	std::thread f4(read_func);
+
+
+
+	f1.join();  
+	f2.join();  
+	f3.join();  
+	f4.join();
+
+	std::cout << "after joining\n";
+	
 }
